@@ -161,7 +161,6 @@
                 <option value="" selected disabled>Select Role</option>
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
-              <!-- <option value="admin">Admin</option>--> 
             </select>
 
             <input type="text" class="form-control" name="name" placeholder="Full Name" required>
@@ -169,15 +168,8 @@
             <input type="password" class="form-control" name="password" placeholder="Password" required>
 
             <div id="deptSection">
-                <select class="form-select" name="department">
-                    <option value="" selected disabled>Select Department</option>
-                    <option value="SE">Software Engineering</option>
-                    <option value="CS">Computer Science</option>
-                    <option value="BBA">Business Admin</option>
-                    <option value="PHM">Pharmacy</option>
-                    <option value="ENG">English</option>
-                    <option value="EE">Electrical Engineering</option>
-                    <option value="AI">Artificial Intelligence</option>
+                <select class="form-select" name="department" id="deptSelect">
+                    <option value="" selected disabled>Loading Departments...</option>
                 </select>
             </div>
 
@@ -191,11 +183,38 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // --- 1. Fetch Departments from Database on Load ---
+        function loadDepartments() {
+            fetch('fetch_departments.php')
+            .then(response => response.json())
+            .then(data => {
+                const deptSelect = document.getElementById('deptSelect');
+                // Reset dropdown
+                deptSelect.innerHTML = '<option value="" selected disabled>Select Department</option>';
+                
+                // Populate options
+                data.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.DeptID; // Value sent to DB (e.g. "SE")
+                    option.textContent = dept.DeptName; // Text shown to user (e.g. "Software Engineering")
+                    deptSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading departments:', error);
+                document.getElementById('deptSelect').innerHTML = '<option value="" disabled>Error loading departments</option>';
+            });
+        }
+
+        // Call immediately when page loads
+        window.addEventListener('DOMContentLoaded', loadDepartments);
+
+
         // Toggle Department Field
         function toggleFields() {
             const role = document.getElementById('role').value;
             const deptSection = document.getElementById('deptSection');
-            const deptInput = deptSection.querySelector('select');
+            const deptInput = document.getElementById('deptSelect');
 
             if (role === 'teacher' || role === 'student') {
                 deptSection.style.display = 'block';
