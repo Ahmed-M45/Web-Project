@@ -12,17 +12,24 @@ $role = $_POST['role'] ?? '';
 $name = $_POST['name'] ?? '';
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
-$department = $_POST['department'] ?? ''; // Only for teachers
+$department = $_POST['department'] ?? ''; // Now used for both Teachers and Students
+
+// Helper to map codes to Full Names (Used for both Teacher and Student)
+$deptMap = [
+    "SE" => "Software Engineering", 
+    "CS" => "Computer Science", 
+    "BBA" => "Business Admin",
+    "PHM" => "Pharmacy", 
+    "ENG" => "English", 
+    "EE" => "Electrical Engineering", 
+    "AI" => "Artificial Intelligence"
+];
 
 // Validation
 if (empty($role) || empty($name) || empty($email) || empty($password)) {
     echo json_encode(["status" => "error", "message" => "All fields are required"]);
     exit();
 }
-
-// Check if email already exists (Basic check across all tables is ideal, but checking respective table here)
-// Note: In a production app, password should be hashed: $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-// For this project consistency, we are using the plain text password as per your previous login script.
 
 $newID = "";
 
@@ -34,8 +41,8 @@ try {
         
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
-            $lastID = $row['AdminID']; // e.g., ADM001
-            $num = (int)substr($lastID, 3); // Get '001' -> 1
+            $lastID = $row['AdminID']; 
+            $num = (int)substr($lastID, 3); 
             $newID = "ADM" . str_pad($num + 1, 3, "0", STR_PAD_LEFT);
         } else {
             $newID = "ADM001";
@@ -52,53 +59,66 @@ try {
             exit();
         }
 
-        $deptPrefix = "T-" . $department . "-"; // e.g., T-SE-
+        $deptPrefix = "T-" . $department . "-"; 
         
-        // Find last ID specifically for this department
         $sql = "SELECT TeacherID FROM Teacher WHERE TeacherID LIKE '$deptPrefix%' ORDER BY LENGTH(TeacherID) DESC, TeacherID DESC LIMIT 1";
         $result = $conn->query($sql);
 
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
-            $lastID = $row['TeacherID']; // e.g., T-SE-005
-            $lastNumStr = substr($lastID, strlen($deptPrefix)); // Get '005'
-            $num = (int)$lastNumStr;
+            $lastID = $row['TeacherID']; 
+            $num = (int)substr($lastID, strlen($deptPrefix));
             $newID = $deptPrefix . str_pad($num + 1, 3, "0", STR_PAD_LEFT);
         } else {
             $newID = $deptPrefix . "001";
         }
 
-        // Map short code to full name for DB storage if needed
-        $deptMap = [
-            "SE" => "Software Engineering", "CS" => "Computer Science", "BBA" => "Business",
-            "PHM" => "Pharmacy", "ENG" => "English", "EE" => "Engineering", "AI" => "Artificial Intelligence"
-        ];
         $fullDeptName = $deptMap[$department] ?? $department;
-
         $stmt = $conn->prepare("INSERT INTO Teacher (TeacherID, Name, Email, Password, Department) VALUES (?, ?, ?, ?, ?)");
         $stmt->bind_param("sssss", $newID, $name, $email, $password, $fullDeptName);
         $stmt->execute();
 
     } elseif ($role === 'student') {
-        // --- STUDENT ID GENERATION (STD20250001 -> STD20250002) ---
-        // Since students don't select Dept, we use a generic 'STD' prefix + Year
-        $year = date("Y"); 
-        $prefix = "STD" . $year; // e.g., STD2025
+        // --- STUDENT ID GENERATION (BSE260001 -> BSE260002) ---
+        if (empty($department)) {
+            echo json_encode(["status" => "error", "message" => "Department required for Students"]);
+            exit();
+        }
 
-        $sql = "SELECT StudentID FROM Student WHERE StudentID LIKE '$prefix%' ORDER BY StudentID DESC LIMIT 1";
+        // 1. Get Prefix based on Department Map + Current Year
+        $year = date("y"); // Returns '26' for 2026
+        
+        // Map Department Codes to ID Prefixes
+        $idPrefixMap = [
+            "SE" => "BSE", 
+            "CS" => "BCS", 
+            "BBA" => "BBA", 
+            "PHM" => "DPH", 
+            "ENG" => "BSENG", 
+            "EE" => "BEE", 
+            "AI" => "BAI"
+        ];
+        
+        $prefix = ($idPrefixMap[$department] ?? "STD") . $year; // e.g., BSE26
+
+        // 2. Find last ID for this specific Batch/Dept
+        $sql = "SELECT StudentID FROM Student WHERE StudentID LIKE '$prefix%' ORDER BY LENGTH(StudentID) DESC, StudentID DESC LIMIT 1";
         $result = $conn->query($sql);
 
         if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $lastID = $row['StudentID']; // e.g., STD20250001
-            $num = (int)substr($lastID, 7); // Get '0001' (Length of STD2025 is 7)
+            $lastID = $result->fetch_assoc()['StudentID'];
+            // Remove prefix to get the number sequence
+            $num = (int)substr($lastID, strlen($prefix));
             $newID = $prefix . str_pad($num + 1, 4, "0", STR_PAD_LEFT);
         } else {
             $newID = $prefix . "0001";
         }
 
-        $stmt = $conn->prepare("INSERT INTO Student (StudentID, Name, Email, Password) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssss", $newID, $name, $email, $password);
+        $fullDeptName = $deptMap[$department] ?? $department;
+
+        // 3. Insert into Student Table (including Department)
+        $stmt = $conn->prepare("INSERT INTO Student (StudentID, Name, Email, Password, Department) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $newID, $name, $email, $password, $fullDeptName);
         $stmt->execute();
     }
 

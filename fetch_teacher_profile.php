@@ -1,21 +1,31 @@
 <?php
 header('Content-Type: application/json');
-$teacherID = $_GET['TeacherID'] ?? "";
-
-if(empty($teacherID)){ exit(json_encode(['error'=>'No ID provided'])); }
 
 $conn = new mysqli("localhost", "root", "", "studentportal");
-if ($conn->connect_error) die(json_encode(["error" => "DB Connection Failed"]));
+if ($conn->connect_error) { die(json_encode(["error" => "Connection failed"])); }
 
-$stmt = $conn->prepare("SELECT TeacherID, Name, Email, Department, Password FROM Teacher WHERE TeacherID=?");
+$teacherID = $_GET['TeacherID'] ?? '';
+
+if(empty($teacherID)) {
+    echo json_encode(["error" => "No Teacher ID provided"]);
+    exit();
+}
+
+// JOIN Teacher with Department to get the Name (e.g. "Software Engineering")
+$sql = "SELECT t.TeacherID, t.Name, t.Email, t.Password, d.DeptName 
+        FROM Teacher t 
+        LEFT JOIN Department d ON t.DeptID = d.DeptID 
+        WHERE t.TeacherID = ?";
+
+$stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $teacherID);
 $stmt->execute();
 $result = $stmt->get_result();
 
-if($row = $result->fetch_assoc()){
+if ($row = $result->fetch_assoc()) {
     echo json_encode($row);
 } else {
-    echo json_encode(['error'=>'Teacher not found']);
+    echo json_encode(["error" => "Teacher not found"]);
 }
 
 $stmt->close();

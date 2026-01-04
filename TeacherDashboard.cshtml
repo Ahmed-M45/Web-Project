@@ -87,7 +87,7 @@ if (!teacherID) {
         </div>
         
         <div class="d-flex align-items-center">
-            <span class="text-white me-3 d-none d-md-block">Welcome <span id="teacherName"></span></span>
+            <span class="text-white me-3 d-none d-md-block">Welcome <span id="teacherNameDisplay"></span></span>
             <button onclick="logout()" class="btn btn-light btn-sm fw-bold">Logout</button>
         </div>
     </div>
@@ -102,33 +102,33 @@ if (!teacherID) {
       </div>
       <div class="modal-body">
         <form id="profileForm">
-    <div class="mb-3">
-        <label class="form-label fw-bold">Teacher ID</label>
-        <input type="text" class="form-control bg-light" id="profID" readonly>
-        <small class="text-muted">You cannot change your ID.</small>
-    </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Teacher ID</label>
+                <input type="text" class="form-control bg-light" id="profID" readonly>
+                <small class="text-muted">You cannot change your ID.</small>
+            </div>
 
-    <div class="mb-3">
-        <label class="form-label fw-bold">Full Name</label>
-        <input type="text" class="form-control" id="profName">
-    </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Full Name</label>
+                <input type="text" class="form-control" id="profName">
+            </div>
 
-    <div class="mb-3">
-        <label class="form-label fw-bold">Email</label>
-        <input type="email" class="form-control" id="profEmail">
-    </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Email</label>
+                <input type="email" class="form-control" id="profEmail">
+            </div>
 
-    <div class="mb-3">
-        <label class="form-label fw-bold">Department</label>
-        <input type="text" class="form-control bg-light" id="profDept" readonly>
-        <small class="text-muted">You cannot change your department.</small>
-    </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Department</label>
+                <input type="text" class="form-control bg-light" id="profDept" readonly>
+                <small class="text-muted">You cannot change your department.</small>
+            </div>
 
-    <div class="mb-3">
-        <label class="form-label fw-bold">Password</label>
-        <input type="text" class="form-control" id="profPass">
-    </div>
-</form>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Password</label>
+                <input type="text" class="form-control" id="profPass">
+            </div>
+        </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -137,6 +137,7 @@ if (!teacherID) {
     </div>
   </div>
 </div>
+
 <div class="container mt-5">
     <h3 class="text-white mb-4">Teacher Dashboard</h3>
 
@@ -229,12 +230,7 @@ if (!teacherID) {
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Date</label>
                     <input type="date" class="form-control" id="attDate" onchange="refreshAttList()">
-                    <small class="text-muted">Change date to edit previous records.</small>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Time</label>
-                    <input type="time" class="form-control" id="attDate" onchange="refreshAttList()">
-                    <small class="text-muted">Change time to edit previous records.</small>
+                    <small class="text-muted">Select date to load student list.</small>
                 </div>
             </div>
             
@@ -307,7 +303,7 @@ if (!teacherID) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    document.getElementById("teacherName").innerText = teacherName;
+    document.getElementById("teacherNameDisplay").innerText = teacherName;
     let myCoursesData = []; // Cache courses for dropdowns
 
     // --- NAVIGATION ---
@@ -357,100 +353,99 @@ if (!teacherID) {
         .then(data => document.getElementById("resultsTable").innerHTML = data);
     }
 
-    // --- MODAL HELPERS ---
+    // --- NEW: EDIT AND DELETE FUNCTIONS ---
     
-    // 1. Refresh Student List when Date changes
-    function refreshAttList() {
-        const courseID = document.getElementById('attCourseSelect').value;
-        const date = document.getElementById('attDate').value;
-        if (courseID && date) {
-            loadStudentsForModal(courseID, 'attStudentList', false, date, null);
-        }
+    // Triggered by the "Edit" button in Attendance Table
+    function editAttRow(courseID, date) {
+        const modal = new bootstrap.Modal(document.getElementById('attendanceModal'));
+        modal.show();
+
+        // Small delay to ensure modal DOM is ready and courses are cached
+        setTimeout(() => {
+            let dropdown = document.getElementById("attCourseSelect");
+            
+            // Populate dropdown if needed
+            if(dropdown.options.length <= 1 && myCoursesData.length > 0) {
+                dropdown.innerHTML = '<option value="">-- Choose Course --</option>';
+                myCoursesData.forEach(c => { dropdown.innerHTML += `<option value="${c.CourseID}">${c.CourseName}</option>`; });
+            }
+
+            dropdown.value = courseID;
+            document.getElementById("attDate").value = date;
+            
+            // Load the existing data
+            refreshAttList();
+        }, 200);
     }
 
-    // 2. Refresh Student List when Subject changes
-    function refreshResList() {
-        const courseID = document.getElementById('resCourseSelect').value;
-        const subject = document.getElementById('resSubject').value;
-        if (courseID && subject) {
-            loadStudentsForModal(courseID, 'resStudentList', true, null, subject);
-        }
+    // Triggered by the "Edit" button in Results Table
+    function editResRow(courseID, examTitle) {
+        const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+        modal.show();
+
+        setTimeout(() => {
+            let dropdown = document.getElementById("resCourseSelect");
+            
+            if(dropdown.options.length <= 1 && myCoursesData.length > 0) {
+                dropdown.innerHTML = '<option value="">-- Choose Course --</option>';
+                myCoursesData.forEach(c => { dropdown.innerHTML += `<option value="${c.CourseID}">${c.CourseName}</option>`; });
+            }
+
+            dropdown.value = courseID;
+            document.getElementById("resSubject").value = examTitle;
+
+            // Load existing data
+            refreshResList();
+        }, 200);
     }
 
-    // --- OPEN MODALS ---
-    
-    // --- UPDATED OPEN MODAL FUNCTION ---
+    // Triggered by "Delete" buttons
+    function deleteRow(type, studentID, courseID, identifier) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This record will be permanently deleted.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('delete_teacher_record.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, studentID, courseID, identifier })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        Swal.fire('Deleted!', 'Record has been deleted.', 'success');
+                        if(type === 'attendance') loadAttendance();
+                        if(type === 'result') loadResults();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    // --- STANDARD MODAL OPENERS ---
+
     function openAttendanceModal() {
-        if(myCoursesData.length === 0) loadCourses(); // Ensure cache
+        if(myCoursesData.length === 0) loadCourses(); 
         
         let dropdown = document.getElementById("attCourseSelect");
-        let selectedCourseID = dropdown.value;
-
-        // 1. First, populate the dropdown if empty (Standard logic)
         if (dropdown.options.length <= 1) {
             dropdown.innerHTML = '<option value="">-- Choose Course --</option>';
             myCoursesData.forEach(c => { dropdown.innerHTML += `<option value="${c.CourseID}">${c.CourseName}</option>`; });
         }
 
-        // 2. CHECK: Has the teacher selected a course from the main dashboard dropdown?
-        // Note: You might need to change your HTML slightly to allow course selection BEFORE opening modal, 
-        // OR we allow opening the modal but validate when they pick a course INSIDE the modal.
-        
-        // BETTER UX APPROACH:
-        // Let's allow opening the modal, but validate immediately when they select a course inside it.
-        
         document.getElementById("attDate").valueAsDate = new Date();
         document.getElementById("attStudentList").innerHTML = '<p class="text-muted text-center mt-3">Select a Course above to begin.</p>';
         document.getElementById("attStatusMsg").innerText = "Waiting...";
         
         new bootstrap.Modal(document.getElementById('attendanceModal')).show();
-    }
-
-    // --- NEW FUNCTION: REPLACES refreshAttList ---
-    // This function runs every time the teacher changes the Course Dropdown inside the modal
-    function refreshAttList() {
-        const courseID = document.getElementById('attCourseSelect').value;
-        const date = document.getElementById('attDate').value;
-
-        if (!courseID) return;
-
-        // Show loading state
-        document.getElementById("attStudentList").innerHTML = '<div class="text-center mt-4"><div class="spinner-border text-primary"></div><p>Validating Time Slot...</p></div>';
-
-        // 1. VALIDATE TIME SLOT
-        fetch(`validate_class_time.php?TeacherID=${teacherID}&CourseID=${courseID}`)
-        .then(res => res.json())
-        .then(validation => {
-            
-            if (validation.status === 'error') {
-                // BLOCK ACCESS
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Access Denied',
-                    text: validation.message + " (Current Time: " + new Date().toLocaleTimeString() + ")"
-                });
-                
-                // Clear the list and reset dropdown
-                document.getElementById("attStudentList").innerHTML = `<div class="alert alert-danger text-center m-3">⛔ ${validation.message}</div>`;
-                document.getElementById("attCourseSelect").value = ""; // Reset selection
-                return;
-            }
-
-            // 2. IF VALID, PROCEED TO LOAD STUDENTS
-            if (courseID && date) {
-                loadStudentsForModal(courseID, 'attStudentList', false, date, null);
-                
-                // Optional: Show success toast
-                const Toast = Swal.mixin({
-                    toast: true, position: 'top-end', showConfirmButton: false, timer: 3000
-                });
-                Toast.fire({ icon: 'success', title: `Class Session Verified (${validation.slot})` });
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById("attStudentList").innerHTML = '<p class="text-danger text-center">System Error Validating Time.</p>';
-        });
     }
 
     function openResultModal() {
@@ -467,14 +462,52 @@ if (!teacherID) {
         new bootstrap.Modal(document.getElementById('resultModal')).show();
     }
 
-    // --- CORE FETCH LOGIC (With Grouping & Pre-filling) ---
-    
+    // --- REFRESH FUNCTIONS ---
+    function refreshAttList() {
+        const courseID = document.getElementById('attCourseSelect').value;
+        const date = document.getElementById('attDate').value;
+
+        if (!courseID) return;
+
+        document.getElementById("attStudentList").innerHTML = '<div class="text-center mt-4"><div class="spinner-border text-primary"></div><p>Validating Time Slot...</p></div>';
+
+        // Validate Time Slot First
+        // We append &Date=${date} to the URL
+        fetch(`validate_class_time.php?TeacherID=${teacherID}&CourseID=${courseID}&Date=${date}`)
+        .then(res => res.json())
+        .then(validation => {
+            if (validation.status === 'error') {
+                Swal.fire({
+                    icon: 'error', title: 'Access Denied',
+                    text: validation.message
+                });
+                document.getElementById("attStudentList").innerHTML = `<div class="alert alert-danger text-center m-3">⛔ ${validation.message}</div>`;
+                document.getElementById("attCourseSelect").value = ""; 
+                return;
+            }
+
+            if (courseID && date) {
+                loadStudentsForModal(courseID, 'attStudentList', false, date, null);
+            }
+        })
+        .catch(err => {
+            document.getElementById("attStudentList").innerHTML = '<p class="text-danger text-center">System Error Validating Time.</p>';
+        });
+    }
+
+    function refreshResList() {
+        const courseID = document.getElementById('resCourseSelect').value;
+        const subject = document.getElementById('resSubject').value;
+        if (courseID && subject) {
+            loadStudentsForModal(courseID, 'resStudentList', true, null, subject);
+        }
+    }
+
+    // --- CORE FETCH LOGIC ---
     function loadStudentsForModal(courseID, containerId, isResultMode, date = null, subject = null) {
         let url = `fetch_students_by_course.php?CourseID=${courseID}`;
         if (date) url += `&Date=${date}`;
         if (subject) url += `&Subject=${encodeURIComponent(subject)}`;
-
-        document.getElementById(containerId).innerHTML = '<div class="text-center mt-4"><div class="spinner-border text-primary"></div></div>';
 
         fetch(url)
         .then(res => res.json())
@@ -485,42 +518,30 @@ if (!teacherID) {
             let statusClass = "bg-primary";
 
             if(data.length === 0) {
-                html = "<p class='text-danger text-center mt-3'>No students enrolled in this course.</p>";
+                html = "<p class='text-danger text-center mt-3'>No students enrolled.</p>";
                 document.getElementById(statusBadge).className = "badge bg-danger";
                 document.getElementById(statusBadge).innerText = "No Students";
             } else {
-                // Check if existing data found (look at first record)
                 if (data[0].ExistingStatus || data[0].ExistingMarks) {
                     statusText = "Editing Saved Data";
                     statusClass = "bg-warning text-dark";
                 }
 
-                html += `<table class="table table-sm table-hover align-middle">
-                            <thead class="table-light sticky-top">
-                                <tr><th>ID</th><th>Name</th><th style="width:180px">${isResultMode ? 'Marks' : 'Status'}</th></tr>
-                            </thead>
-                            <tbody>`;
+                html += `<table class="table table-sm table-hover align-middle"><thead class="table-light sticky-top"><tr><th>ID</th><th>Name</th><th style="width:180px">${isResultMode ? 'Marks' : 'Status'}</th></tr></thead><tbody>`;
                 
                 let currentDept = "";
-
                 data.forEach(s => {
-                    // GROUP BY DEPARTMENT (First 3 chars of ID)
                     let deptPrefix = s.StudentID.substring(0, 3).toUpperCase(); 
                     if (isNaN(deptPrefix) && deptPrefix !== currentDept) {
                         currentDept = deptPrefix;
                         html += `<tr class="table-secondary"><td colspan="3" class="fw-bold ps-3 text-start small">DEPARTMENT: ${currentDept}</td></tr>`;
                     }
 
-                    html += `<tr>
-                        <td><small>${s.StudentID}</small></td>
-                        <td>${s.Name}</td>
-                        <td>`;
+                    html += `<tr><td><small>${s.StudentID}</small></td><td>${s.Name}</td><td>`;
                     
                     if (isResultMode) {
-                        // RESULTS INPUTS
                         let val = s.ExistingMarks !== null ? s.ExistingMarks : "";
                         let grd = s.ExistingGrade !== null ? s.ExistingGrade : "A"; 
-
                         html += `<div class="input-group input-group-sm">
                                     <input type="number" class="form-control" placeholder="0" name="marks_${s.StudentID}" value="${val}" min="0" max="100">
                                     <select class="form-select" name="grade_${s.StudentID}">
@@ -532,28 +553,19 @@ if (!teacherID) {
                                     </select>
                                  </div>`;
                     } else {
-                        // ATTENDANCE RADIOS
                         let st = s.ExistingStatus; 
                         let pChk = (st === 'Present' || st === null) ? 'checked' : ''; 
                         let aChk = (st === 'Absent') ? 'checked' : '';
                         let lChk = (st === 'Late') ? 'checked' : '';
-
                         html += `<div class="btn-group btn-group-sm w-100" role="group">
-                                    <input type="radio" class="btn-check" name="status_${s.StudentID}" id="p_${s.StudentID}" value="Present" ${pChk}>
-                                    <label class="btn btn-outline-success" for="p_${s.StudentID}">P</label>
-
-                                    <input type="radio" class="btn-check" name="status_${s.StudentID}" id="a_${s.StudentID}" value="Absent" ${aChk}>
-                                    <label class="btn btn-outline-danger" for="a_${s.StudentID}">A</label>
-
-                                    <input type="radio" class="btn-check" name="status_${s.StudentID}" id="l_${s.StudentID}" value="Late" ${lChk}>
-                                    <label class="btn btn-outline-warning" for="l_${s.StudentID}">L</label>
+                                    <input type="radio" class="btn-check" name="status_${s.StudentID}" id="p_${s.StudentID}" value="Present" ${pChk}><label class="btn btn-outline-success" for="p_${s.StudentID}">P</label>
+                                    <input type="radio" class="btn-check" name="status_${s.StudentID}" id="a_${s.StudentID}" value="Absent" ${aChk}><label class="btn btn-outline-danger" for="a_${s.StudentID}">A</label>
+                                    <input type="radio" class="btn-check" name="status_${s.StudentID}" id="l_${s.StudentID}" value="Late" ${lChk}><label class="btn btn-outline-warning" for="l_${s.StudentID}">L</label>
                                  </div>`;
                     }
                     html += `</td></tr>`;
                 });
                 html += `</tbody></table>`;
-                
-                // Update Badge
                 document.getElementById(statusBadge).className = "badge " + statusClass;
                 document.getElementById(statusBadge).innerText = statusText;
             }
@@ -562,179 +574,115 @@ if (!teacherID) {
     }
 
     // --- SUBMIT FUNCTIONS ---
-
     function submitAttendance() {
         const courseID = document.getElementById('attCourseSelect').value;
         const date = document.getElementById('attDate').value;
-
         if(!courseID || !date) { Swal.fire('Error', 'Please select course and date', 'error'); return; }
 
         let students = [];
-        // Loop through rows to get checked radios
         document.querySelectorAll('#attStudentList tbody tr').forEach(row => {
-            // Skip header rows
             if(row.classList.contains('table-secondary')) return;
-
             let sid = row.cells[0].innerText;
-            // Find checked radio for this student
             let checkedRadio = document.querySelector(`input[name="status_${sid}"]:checked`);
-            if(checkedRadio) {
-                students.push({ studentID: sid, status: checkedRadio.value });
-            }
+            if(checkedRadio) students.push({ studentID: sid, status: checkedRadio.value });
         });
 
-        sendData({
-            type: 'attendance',
-            courseID: courseID,
-            teacherID: teacherID,
-            date: date,
-            data: students
-        });
+        sendData({ type: 'attendance', courseID, teacherID, date, data: students });
     }
 
     function submitResults() {
         const courseID = document.getElementById('resCourseSelect').value;
         const subject = document.getElementById('resSubject').value;
-
         if(!courseID || !subject) { Swal.fire('Error', 'Please select course and enter exam name', 'error'); return; }
 
         let students = [];
         document.querySelectorAll('#resStudentList tbody tr').forEach(row => {
             if(row.classList.contains('table-secondary')) return;
-
             let sid = row.cells[0].innerText;
             let marksInput = document.querySelector(`input[name="marks_${sid}"]`);
             let gradeInput = document.querySelector(`select[name="grade_${sid}"]`);
-
-            // Only send if marks are entered
             if(marksInput && marksInput.value !== "") {
                 students.push({ studentID: sid, marks: marksInput.value, grade: gradeInput.value });
             }
         });
 
         if(students.length === 0) { Swal.fire('Warning', 'No marks entered', 'warning'); return; }
-
-        sendData({
-            type: 'result',
-            courseID: courseID,
-            teacherID: teacherID,
-            subject: subject,
-            data: students
-        });
+        sendData({ type: 'result', courseID, teacherID, subject, data: students });
     }
 
     function sendData(payload) {
         Swal.fire({title: 'Saving...', didOpen: () => Swal.showLoading()});
-        
         fetch('submit_teacher_data.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
         })
         .then(res => res.json())
         .then(data => {
             if(data.status === 'success') {
                 Swal.fire('Success', data.message, 'success').then(() => {
-                    // Close modals and reload tables
                     bootstrap.Modal.getInstance(document.getElementById('attendanceModal'))?.hide();
                     bootstrap.Modal.getInstance(document.getElementById('resultModal'))?.hide();
                     if(payload.type === 'attendance') loadAttendance();
                     if(payload.type === 'result') loadResults();
                 });
-            } else {
-                Swal.fire('Error', data.message, 'error');
-            }
+            } else { Swal.fire('Error', data.message, 'error'); }
+        });
+    }
+
+    // --- PROFILE FUNCTIONS ---
+    function openProfileModal() {
+        fetch(`fetch_teacher_profile.php?TeacherID=${teacherID}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.error) { Swal.fire('Error', 'Could not load profile', 'error'); return; }
+            document.getElementById('profID').value = data.TeacherID;
+            document.getElementById('profName').value = data.Name;
+            document.getElementById('profEmail').value = data.Email;
+            document.getElementById('profDept').value = data.DeptName || data.Department || "Not Assigned"; 
+            document.getElementById('profPass').value = data.Password;
+            new bootstrap.Modal(document.getElementById('profileModal')).show();
+        });
+    }
+
+    function updateProfile() {
+        const payload = {
+            TeacherID: document.getElementById('profID').value,
+            Name: document.getElementById('profName').value,
+            Email: document.getElementById('profEmail').value,
+            Password: document.getElementById('profPass').value
+        };
+
+        fetch('update_teacher_profile.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
         })
-        .catch(err => Swal.fire('Error', 'Network Error', 'error'));
-    }
-// --- PROFILE FUNCTIONS ---
-
-function openProfileModal() {
-    // 1. Fetch current data
-    fetch(`fetch_teacher_profile.php?TeacherID=${teacherID}`)
-    .then(res => res.json())
-    .then(data => {
-        if(data.error) { 
-            Swal.fire('Error', 'Could not load profile', 'error'); 
-            return; 
-        }
-        
-        // 2. Populate Modal Fields
-        document.getElementById('profID').value = data.TeacherID;
-        document.getElementById('profName').value = data.Name;
-        document.getElementById('profEmail').value = data.Email;
-        document.getElementById('profDept').value = data.Department; 
-        document.getElementById('profPass').value = data.Password;
-        
-        // 3. Show Modal
-        new bootstrap.Modal(document.getElementById('profileModal')).show();
-    });
-}
-
-function updateProfile() {
-    const payload = {
-        TeacherID: document.getElementById('profID').value,
-        Name: document.getElementById('profName').value,
-        Email: document.getElementById('profEmail').value,
-        // Department is intentionally REMOVED from here
-        Password: document.getElementById('profPass').value
-    };
-
-    fetch('update_teacher_profile.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(data.status === 'success') {
-            Swal.fire('Success', 'Profile Updated!', 'success').then(() => {
-                localStorage.setItem("Name", payload.Name);
-                document.getElementById("teacherName").innerText = payload.Name;
-                document.getElementById("teacherNameDisplay").innerText = payload.Name; // Update navbar name too
-                
-                bootstrap.Modal.getInstance(document.getElementById('profileModal')).hide();
-            });
-        } else {
-            Swal.fire('Error', data.message, 'error');
-        }
-    });
-}
-    function logout() {
-        // Clear local storage if you use it, or just redirect (Session is handled by PHP usually)
-        localStorage.clear();
-        window.location.href = "login.html";
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                Swal.fire('Success', 'Profile Updated!', 'success').then(() => {
+                    localStorage.setItem("Name", payload.Name);
+                    document.getElementById("teacherNameDisplay").innerText = payload.Name;
+                    bootstrap.Modal.getInstance(document.getElementById('profileModal')).hide();
+                });
+            } else { Swal.fire('Error', data.message, 'error'); }
+        });
     }
 
-    // Load Courses initially so we have them if user clicks Modal buttons first
-    loadCourses();
-    // --- SEARCH / FILTER FUNCTION ---
+    function logout() { localStorage.clear(); window.location.href = "login.html"; }
+
     function filterTable(inputId, tableContainerId) {
-        // 1. Get the search term
         let input = document.getElementById(inputId);
         let filter = input.value.toUpperCase();
-        
-        // 2. Get the table
-        let container = document.getElementById(tableContainerId);
-        let table = container.querySelector("table");
-        
-        if (!table) return; // Exit if table not loaded yet
-
+        let table = document.getElementById(tableContainerId).querySelector("table");
+        if (!table) return;
         let tr = table.getElementsByTagName("tr");
-
-        // 3. Loop through all table rows (Start at 1 to skip the Header Row)
         for (let i = 1; i < tr.length; i++) {
             let rowContent = tr[i].textContent || tr[i].innerText;
-            
-            // 4. Check if the row text contains the search term
-            if (rowContent.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = ""; // Show
-            } else {
-                tr[i].style.display = "none"; // Hide
-            }
+            tr[i].style.display = rowContent.toUpperCase().indexOf(filter) > -1 ? "" : "none";
         }
     }
-</script>
 
+    // Initial Load
+    loadCourses();
+
+</script>
 </body>
 </html>

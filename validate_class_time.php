@@ -1,11 +1,12 @@
 <?php
 header('Content-Type: application/json');
-date_default_timezone_set('Asia/Karachi'); // Set your timezone (e.g., 'Asia/Karachi')
+date_default_timezone_set('Asia/Karachi');
 
 $teacherID = $_GET['TeacherID'] ?? '';
 $courseID = $_GET['CourseID'] ?? '';
+$selectedDate = $_GET['Date'] ?? ''; // <--- NEW: Get the date selected by user
 
-if(empty($teacherID) || empty($courseID)) {
+if(empty($teacherID) || empty($courseID) || empty($selectedDate)) {
     echo json_encode(['status' => 'error', 'message' => 'Missing parameters']);
     exit();
 }
@@ -13,11 +14,24 @@ if(empty($teacherID) || empty($courseID)) {
 $conn = new mysqli("localhost", "root", "", "studentportal");
 if ($conn->connect_error) die(json_encode(["status" => "error", "message" => "DB Connection Failed"]));
 
-// Get Current Day and Time
-$currentDay = date('l'); // e.g., "Monday"
-$currentTime = date('H:i:s'); // e.g., "14:30:00"
+// 1. Calculate the Day Name from the USER'S selected date
+// strtotime converts "2025-01-04" into "Saturday"
+$dayToCheck = date('l', strtotime($selectedDate)); 
 
-// Check if a slot exists for this teacher/course right now
+// 2. Get the Time to validate
+// Note: Usually you validate the CURRENT time against the schedule.
+// If you want to allow marking past attendance, you shouldn't validate time range, only Day.
+// But assuming you want strict "Live" marking:
+$currentTime = date('H:i:s');
+
+// 3. LOGIC: 
+// Only allow marking if the Selected Date is TODAY. 
+// (Remove this block if you want to allow teachers to mark attendance for past/future dates)
+if($selectedDate !== date('Y-m-d')) {
+    echo json_encode(['status' => 'error', 'message' => 'You can only mark attendance for the current date.']);
+    exit();
+}
+
 $sql = "SELECT * FROM Timetable 
         WHERE TeacherID = ? 
         AND CourseID = ? 
@@ -25,23 +39,22 @@ $sql = "SELECT * FROM Timetable
         AND ? BETWEEN StartTime AND EndTime";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("siss", $teacherID, $courseID, $currentDay, $currentTime);
+$stmt->bind_param("siss", $teacherID, $courseID, $dayToCheck, $currentTime);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
-    // Valid Slot found
     $row = $result->fetch_assoc();
     echo json_encode([
         'status' => 'success', 
-        'message' => 'Class is in session.',
+        'message' => "Class Found ($dayToCheck)",
         'slot' => $row['StartTime'] . ' - ' . $row['EndTime']
     ]);
 } else {
-    // No slot found
+    // Debugging message to help you see what went wrong
     echo json_encode([
         'status' => 'error', 
-        'message' => "You can only mark attendance during your scheduled slot."
+        'message' => "No Class Scheduled for $dayToCheck at $currentTime"
     ]);
 }
 

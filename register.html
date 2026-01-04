@@ -161,7 +161,7 @@
                 <option value="" selected disabled>Select Role</option>
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
-                <option value="admin">Admin</option>
+              <!-- <option value="admin">Admin</option>--> 
             </select>
 
             <input type="text" class="form-control" name="name" placeholder="Full Name" required>
@@ -197,7 +197,7 @@
             const deptSection = document.getElementById('deptSection');
             const deptInput = deptSection.querySelector('select');
 
-            if (role === 'teacher') {
+            if (role === 'teacher' || role === 'student') {
                 deptSection.style.display = 'block';
                 deptInput.setAttribute('required', 'true');
             } else {

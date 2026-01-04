@@ -44,7 +44,6 @@
         </div></div>
     </div>
 
-    <!-- Students Section -->
     <div id="students" class="section">
         <h4>Students</h4>
         <input type="text" class="form-control mb-2" id="studentSearch" placeholder="Search by ID or Name..." onkeyup="searchTable('studentTable', 'studentSearch')">
@@ -53,7 +52,6 @@
         
     </div>
 
-    <!-- Teachers Section -->
     <div id="teachers" class="section">
         <h4>Teachers</h4>
         <input type="text" class="form-control mb-2" id="teacherSearch" placeholder="Search by ID, Name, Department..." onkeyup="searchTable('teacherTable', 'teacherSearch')">
@@ -61,36 +59,29 @@
         <div id="teacherTable"></div>
     </div>
 
-    <!-- Reports Section -->
-<div id="reports" class="section">
-    <h4>Reports</h4>
-    <div class="mb-3">
-        <button class="btn btn-primary me-2" onclick="showReport('results')">Manage Results</button>
-        <button class="btn btn-secondary" onclick="showReport('attendance')">Manage Attendance</button>
+    <div id="reports" class="section">
+        <h4>Reports</h4>
+        <div class="mb-3">
+            <button class="btn btn-primary me-2" onclick="showReport('results')">Manage Results</button>
+            <button class="btn btn-secondary" onclick="showReport('attendance')">Manage Attendance</button>
+        </div>
+
+        <input type="text" class="form-control mb-2" id="resultsSearch" placeholder="Search by Student, Course..." onkeyup="searchTable('resultsTable', 'resultsSearch')" style="display:none;">
+        <div id="resultsTable" style="display:none;"></div>
+
+        <input type="text" class="form-control mb-2" id="attendanceSearch" placeholder="Search by Student, Subject, Status..." onkeyup="searchTable('attendanceTable', 'attendanceSearch')" style="display:none;">
+        <div id="attendanceTable" style="display:none;"></div>
     </div>
 
-    <!-- Results Search -->
-    <input type="text" class="form-control mb-2" id="resultsSearch" placeholder="Search by Student, Course..." onkeyup="searchTable('resultsTable', 'resultsSearch')" style="display:none;">
-    <div id="resultsTable" style="display:none;"></div>
 
-    <!-- Attendance Search -->
-    <input type="text" class="form-control mb-2" id="attendanceSearch" placeholder="Search by Student, Subject, Status..." onkeyup="searchTable('attendanceTable', 'attendanceSearch')" style="display:none;">
-    <div id="attendanceTable" style="display:none;"></div>
-</div>
-
-
-
-
-    <!-- Queries Section -->
-<div id="queries" class="section">
-    <h4>User Queries</h4>
-     <input type="text" class="form-control mb-2" id="querySearch" placeholder="Search by Name, Email or Phone..." onkeyup="searchTable('queryTable', 'querySearch')">
-    <div id="queryTable"></div>
-</div>
+    <div id="queries" class="section">
+        <h4>User Queries</h4>
+         <input type="text" class="form-control mb-2" id="querySearch" placeholder="Search by Name, Email or Phone..." onkeyup="searchTable('queryTable', 'querySearch')">
+        <div id="queryTable"></div>
+    </div>
 
 </div>
 
-<!-- Student Modal -->
 <div class="modal fade" id="studentModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -100,7 +91,6 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <!-- Visible ID input -->
           <div class="mb-3">
             <label>ID</label>
             <input type="text" class="form-control" name="StudentID" id="StudentID" required>
@@ -117,6 +107,19 @@
             <label>Password</label>
             <input type="text" class="form-control" name="Password" id="StudentPassword" required>
           </div>
+          <div class="mb-3">
+            <label>Department</label>
+            <select class="form-select" name="Department" id="StudentDept" required>
+                <option value="" selected disabled>Select Department</option>
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Business Admin">Business Admin</option>
+                <option value="Pharmacy">Pharmacy</option>
+                <option value="English">English</option>
+                <option value="Electrical Engineering">Electrical Engineering</option>
+                <option value="Artificial Intelligence">Artificial Intelligence</option>
+            </select>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-primary">Save</button>
@@ -127,9 +130,6 @@
   </div>
 </div>
 
-
-
-<!-- Teacher Modal -->
 <div class="modal fade" id="teacherModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -139,7 +139,6 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <!-- Visible ID input -->
           <div class="mb-3">
             <label>ID</label>
             <input type="text" class="form-control" name="TeacherID" id="TeacherID" required>
@@ -158,7 +157,16 @@
           </div>
           <div class="mb-3">
             <label>Department</label>
-            <input type="text" class="form-control" name="Department" id="TeacherDept" required>
+            <select class="form-select" name="Department" id="TeacherDept" required>
+                <option value="" selected disabled>Select Department</option>
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Business Admin">Business Admin</option>
+                <option value="Pharmacy">Pharmacy</option>
+                <option value="English">English</option>
+                <option value="Electrical Engineering">Electrical Engineering</option>
+                <option value="Artificial Intelligence">Artificial Intelligence</option>
+            </select>
           </div>
         </div>
         <div class="modal-footer">
@@ -169,28 +177,6 @@
     </div>
   </div>
 </div>
-
-<!--Attendance Modal
-<div class="modal fade" id="attendanceModal">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="attendanceForm">
-        <div class="modal-header">
-          <h5 class="modal-title">Attendance</h5>
-          <button class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-
-        <div class="modal-body">
-    <input type="hidden" name="AttendanceID" id="AttendanceID">
-
-    <label>Status</label>
-    <select class="form-control" name="Status" id="Status" required>
-        <option value="Present">Present</option>
-        <option value="Absent">Absent</option>
-    </select>
-</div>
--->
-
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -251,7 +237,6 @@ function showReport(type){
     }
 }
 
-
 function loadResults(){
     fetch('fetch_results.php')
     .then(res=>res.text())
@@ -281,17 +266,6 @@ document.getElementById('attendanceForm').onsubmit = function(e){
         ).hide();
     });
 };
-/*
-function editAttendance(id, status) {
-    document.getElementById('AttendanceID').value = id;
-    document.getElementById('Status').value = status;
-
-    new bootstrap.Modal(
-        document.getElementById('attendanceModal')
-    ).show();
-}
-*/
-
 
 function deleteAttendance(id){
     if(confirm("Delete attendance?")){
@@ -324,8 +298,6 @@ function searchTable(tableId, inputId) {
         rows[i].style.display = found ? "" : "none";
     }
 }
-
-
 </script>
 
 </body>

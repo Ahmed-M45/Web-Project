@@ -1,43 +1,51 @@
 <?php
-$teacherID = $_GET['TeacherID'] ?? "";
 $conn = new mysqli("localhost", "root", "", "studentportal");
 
-$sql = "SELECT a.AttendanceID, s.Name, a.CourseID, a.Date, a.Time, a.Status 
-        FROM Attendance a 
-        JOIN Student s ON a.StudentID = s.StudentID 
-        WHERE a.TeacherID = ?";
+$teacherID = $_GET['TeacherID'];
+
+// Added a.CourseID and a.StudentID to the SELECT so we can use them in buttons
+$sql = "SELECT a.Date, a.Time, a.Status, c.CourseName, a.CourseID, s.Name as StudentName, a.StudentID
+        FROM Attendance a
+        JOIN Course c ON a.CourseID = c.CourseID
+        JOIN Student s ON a.StudentID = s.StudentID
+        WHERE a.TeacherID = ?
+        ORDER BY a.Date DESC, a.Time DESC LIMIT 50";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $teacherID);
 $stmt->execute();
 $result = $stmt->get_result();
 
-echo "<table class='table table-bordered table-hover mt-3'>
-        <thead class='table-dark'>
+echo "<table class='table table-hover mt-3 align-middle'>
+        <thead class='table-primary'>
             <tr>
-                <th>ID</th>
-                <th>Student</th>
-                <th>Course</th>
                 <th>Date</th>
-                <th>Time</th>
+                <th>Course</th>
+                <th>Student</th>
                 <th>Status</th>
-            </tr>
+                <th>Actions</th> </tr>
         </thead>
         <tbody>";
 
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        echo "<tr>
-                <td>{$row['AttendanceID']}</td>
-                <td>{$row['Name']}</td>
-                <td>{$row['CourseID']}</td>
-                <td>{$row['Date']}</td>
-                <td>{$row['Time']}</td>
-                <td><span class='badge " . ($row['Status'] == 'Present' ? 'bg-success' : 'bg-danger') . "'>{$row['Status']}</span></td>
-              </tr>";
-    }
-} else {
-    echo "<tr><td colspan='5'>No records found</td></tr>";
+while($row = $result->fetch_assoc()) {
+    $statusColor = ($row['Status'] == 'Present') ? 'success' : 'danger';
+    $time = date("h:i A", strtotime($row['Time']));
+    
+    // Pass Raw IDs to the JavaScript functions
+    $editParams = "'{$row['CourseID']}', '{$row['Date']}'";
+    $delParams  = "'attendance', '{$row['StudentID']}', '{$row['CourseID']}', '{$row['Date']}'";
+
+    echo "<tr>
+            <td>{$row['Date']} <br> <small class='text-muted'>$time</small></td>
+            <td>{$row['CourseName']}</td>
+            <td>{$row['StudentName']}</td>
+            <td><span class='badge bg-$statusColor'>{$row['Status']}</span></td>
+            <td>
+                <button class='btn btn-sm btn-outline-primary' onclick=\"editAttRow($editParams)\">Edit</button>
+                <button class='btn btn-sm btn-outline-danger' onclick=\"deleteRow($delParams)\">Delete</button>
+            </td>
+          </tr>";
 }
+
 echo "</tbody></table>";
 ?>

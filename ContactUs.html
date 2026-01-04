@@ -37,6 +37,18 @@
             text-align: center;
             margin-top: 15px;
         }
+        /* Custom Link Style for Contact Info */
+.contact-link {
+    color: inherit;           /* Matches the surrounding text color normally */
+    text-decoration: none;    /* No underline normally */
+    transition: all 0.3s ease; /* Smooth transition effect */
+}
+
+.contact-link:hover {
+    color: #0d6efd;           /* Bright Blue on Hover */
+    text-decoration: underline; /* Underline on Hover */
+    cursor: pointer;
+}
     </style>
 </head>
 
@@ -77,22 +89,35 @@
             </div>
 
             <div class="col-md-5">
-                <div class="contact-box">
-                    <h4 class="title">Our Information</h4>
-                    <p><strong>Email:</strong> web.project@cust.edu.pk</p>
-                    <p><strong>Location:</strong> Islamabad, Pakistan</p>
-                    <p><strong>Developed By:</strong></p>
-                    <ul>
-                        <li>Group Project Team</li>
-                        <li>BSSE Students</li>
-                        <ol>
-                          <li>Ahmed Mujtaba</li>
-                        <li>Nauman Manzoor</li>
-                        <li>Omer Yar</li>
-                        </ol>
-                    </ul>
-                </div>
-            </div>
+    <div class="contact-box">
+        <h4 class="title">Our Information</h4>
+        
+        <p><strong>Email:</strong> 
+            <a href="mailto:web.project@cust.edu.pk" class="contact-link">
+                web.project@cust.edu.pk
+            </a>
+        </p>
+        
+        <p><strong>Location:</strong> 
+            <a href="https://www.google.com/maps/search/Islamabad,+Pakistan" target="_blank" class="contact-link">
+                Islamabad, Pakistan
+            </a>
+        </p>
+
+        <p><strong>Developed By:</strong></p>
+        <ul>
+            <li>Group Project Team</li>
+            <li>BSSE Students</li>
+            <ol>
+                <li>Ahmed Mujtaba</li>
+                <li>Nauman Manzoor</li>
+                <li>Omer Yar</li>
+            </ol>
+        </ul>
+    </div>
+</div>
+            
+
         </div>
     </div>
 </body>

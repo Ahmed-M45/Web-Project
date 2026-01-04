@@ -1,72 +1,69 @@
 <?php
 header('Content-Type: application/json');
+date_default_timezone_set('Asia/Karachi'); // Set your Timezone
 
+// 1. Read Input
 $input = file_get_contents("php://input");
-$request = json_decode($input, true);
+$payload = json_decode($input, true);
 
-if (!$request) { exit(json_encode(["status" => "error", "message" => "Invalid Data"])); }
+if (!$payload) { exit(json_encode(["status" => "error", "message" => "Invalid Data"])); }
 
 $conn = new mysqli("localhost", "root", "", "studentportal");
+if ($conn->connect_error) { die(json_encode(["status" => "error", "message" => "DB Connection Failed"])); }
 
-$type = $request['type'];
-$teacherID = $request['teacherID'];
-$courseID = $request['courseID'];
-$dataList = $request['data'];
+$type = $payload['type']; 
+$courseID = $payload['courseID'];
+$teacherID = $payload['teacherID'];
+$deptID = ""; 
 
-$processed = 0;
+// Fetch DeptID
+$deptQuery = $conn->prepare("SELECT DeptID FROM Course WHERE CourseID = ?");
+$deptQuery->bind_param("i", $courseID);
+$deptQuery->execute();
+$res = $deptQuery->get_result();
+if($row = $res->fetch_assoc()) { $deptID = $row['DeptID']; }
+$deptQuery->close();
 
 if ($type === 'attendance') {
-    $date = $request['date'];
-    $time = date("H:i:s");
-    
-    // Get Subject Name (Course Name)
-    $cRow = $conn->query("SELECT CourseName FROM Course WHERE CourseID = $courseID")->fetch_assoc();
-    $subjectName = $cRow['CourseName'];
+    $date = $payload['date'];
+    $data = $payload['data'];
+    $currentTime = date("H:i:s"); // GET CURRENT TIMESTAMP
 
-    foreach ($dataList as $item) {
-        $sid = $item['studentID'];
-        $status = $item['status'];
+    // UPDATED QUERY: Includes 'Time' column
+    // ON DUPLICATE KEY UPDATE: Updates Status AND Time (showing last edit time)
+    $stmt = $conn->prepare("
+        INSERT INTO Attendance (StudentID, CourseID, TeacherID, DeptID, Date, Status, Time) 
+        VALUES (?, ?, ?, ?, ?, ?, ?) 
+        ON DUPLICATE KEY UPDATE Status = VALUES(Status), Time = VALUES(Time)
+    ");
 
-        // Check existence
-        $check = $conn->query("SELECT AttendanceID FROM Attendance WHERE StudentID='$sid' AND CourseID='$courseID' AND Date='$date'");
-        
-        if ($check->num_rows > 0) {
-            // UPDATE
-            $stmt = $conn->prepare("UPDATE Attendance SET Status=?, Time=?, TeacherID=? WHERE StudentID=? AND CourseID=? AND Date=?");
-            $stmt->bind_param("ssssss", $status, $time, $teacherID, $sid, $courseID, $date);
-        } else {
-            // INSERT
-            $stmt = $conn->prepare("INSERT INTO Attendance (StudentID, TeacherID, Subject, Date, Time, Status, CourseID) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssssi", $sid, $teacherID, $subjectName, $date, $time, $status, $courseID);
-        }
-        if ($stmt->execute()) $processed++;
+    foreach ($data as $record) {
+        $stmt->bind_param("sisssss", $record['studentID'], $courseID, $teacherID, $deptID, $date, $record['status'], $currentTime);
+        $stmt->execute();
     }
-    echo json_encode(["status" => "success", "message" => "Attendance saved/updated for $processed students."]);
-} 
+    $stmt->close();
+    echo json_encode(["status" => "success", "message" => "Attendance Saved at $currentTime"]);
 
-elseif ($type === 'result') {
-    $subjectTitle = $request['subject'];
+} elseif ($type === 'result') {
+    // Result logic remains the same (Results usually don't need exact timestamp, but you can add it if needed)
+    $subject = $payload['subject']; 
+    $data = $payload['data']; 
 
-    foreach ($dataList as $item) {
-        $sid = $item['studentID'];
-        $marks = $item['marks'];
-        $grade = $item['grade'];
+    $stmt = $conn->prepare("
+        INSERT INTO Results (StudentID, CourseID, TeacherID, DeptID, ExamTitle, Marks, Grade) 
+        VALUES (?, ?, ?, ?, ?, ?, ?) 
+        ON DUPLICATE KEY UPDATE Marks = VALUES(Marks), Grade = VALUES(Grade)
+    ");
 
-        // Check existence
-        $check = $conn->query("SELECT ResultID FROM Results WHERE StudentID='$sid' AND CourseID='$courseID' AND Subject='$subjectTitle'");
-
-        if ($check->num_rows > 0) {
-            // UPDATE
-            $stmt = $conn->prepare("UPDATE Results SET Marks=?, Grade=?, TeacherID=? WHERE StudentID=? AND CourseID=? AND Subject=?");
-            $stmt->bind_param("isssis", $marks, $grade, $teacherID, $sid, $courseID, $subjectTitle);
-        } else {
-            // INSERT
-            $stmt = $conn->prepare("INSERT INTO Results (StudentID, TeacherID, Subject, Marks, Grade, CourseID) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssisi", $sid, $teacherID, $subjectTitle, $marks, $grade, $courseID);
-        }
-        if ($stmt->execute()) $processed++;
+    foreach ($data as $record) {
+        $stmt->bind_param("sisssis", $record['studentID'], $courseID, $teacherID, $deptID, $subject, $record['marks'], $record['grade']);
+        $stmt->execute();
     }
-    echo json_encode(["status" => "success", "message" => "Results saved/updated for $processed students."]);
+    $stmt->close();
+    echo json_encode(["status" => "success", "message" => "Results Saved!"]);
+
+} else {
+    echo json_encode(["status" => "error", "message" => "Unknown Request Type"]);
 }
 
 $conn->close();

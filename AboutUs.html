@@ -21,6 +21,7 @@
             padding: 20px;
             box-shadow: 0 0 12px rgba(0,0,0,0.1);
             transition: transform 0.3s;
+            height: 100%;
         }
         .member-card:hover {
             transform: scale(1.05);
@@ -32,7 +33,22 @@
         }
         .role {
             color: #38ADA9;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
+        
+        /* Links Styling (Email & Location) */
+        .custom-link {
+            color: #0A3D62;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .custom-link:hover {
+            color: #38ADA9;
+            text-decoration: underline;
+        }
+
         .top-links a {
             color: #0A3D62;
             font-weight: 600;
@@ -48,7 +64,6 @@
 
 <body>
 
-    <!-- TOP NAV LINKS -->
     <div class="top-links">
         <a href="Index.html">Home</a> | 
         <a href="Register.html">Register</a> |
@@ -56,19 +71,24 @@
         <a href="ContactUs.html">Contact Us</a> 
     </div>
 
-    <div class="container text-center mt-5">
+    <div class="container text-center mt-5 mb-5">
         <h2 class="title">About Our Team</h2>
         <p>Meet the developers behind this project.</p>
 
-        <div class="row mt-4">
+        <div class="row mt-4 g-4">
             <div class="col-md-4">
                 <div class="member-card">
                     <h4 class="name">Ahmed Mujtaba</h4>
                     <p class="role">Front-End Developer</p>
-                    <p class="role"></p>Hi! My name is Ahmed Mujtaba. I am a BS SE 6th Semester Student enrolled in the department of Software Engineering at Capital University of Science and Technology.</p>
-                    <p class="role">Email: AhmedMujtaba55055@gmail.com</p>
-                    <p class="role">Location: Talagang, Punjab</p>
-
+                    <p class="text-muted small">Hi! My name is Ahmed Mujtaba. I am a BS SE 6th Semester Student enrolled in the department of Software Engineering at Capital University of Science and Technology.</p>
+                    
+                    <p>Email: <a href="mailto:ahmedmujtaba55055@gmail.com" class="custom-link">ahmedmujtaba55055@gmail.com</a></p>
+                    
+                    <p>Location: 
+                        <a href="https://www.google.com/maps/search/?api=1&query=Talagang+Punjab" target="_blank" class="custom-link">
+                            Talagang, Punjab
+                        </a>
+                    </p>
                 </div>
             </div>
 
@@ -76,9 +96,15 @@
                 <div class="member-card">
                     <h4 class="name">Nauman Manzoor</h4>
                     <p class="role">Back-End Developer</p>
-                    <p class="role"></p>Hi! My name is Nauman Manzoor. I am a BS SE 6th Semester Student enrolled in the department of Software Engineering at Capital University of Science and Technology.</p>
-                    <p class="role">Email: NaumanManzoor15@gmail.com</p>
-                    <p class="role">Location: Mirpur AJK</p>
+                    <p class="text-muted small">Hi! My name is Nauman Manzoor. I am a BS SE 6th Semester Student enrolled in the department of Software Engineering at Capital University of Science and Technology.</p>
+                    
+                    <p>Email: <a href="mailto:naumanmanzoor15@gmail.com" class="custom-link">naumanmanzoor15@gmail.com</a></p>
+                    
+                    <p>Location: 
+                        <a href="https://www.google.com/maps/search/?api=1&query=Bhimber+AJK" target="_blank" class="custom-link">
+                            Bhimber, AJK
+                        </a>
+                    </p>
                 </div>
             </div>
 
@@ -86,9 +112,15 @@
                 <div class="member-card">
                     <h4 class="name">Omer Yar</h4>
                     <p class="role">Back-End Developer</p>
-                    <p class="role"></p>Hi! My name is Omer Yar. I am a BS SE 6th Semester Student enrolled in the department of Software Engineering at Capital University of Science and Technology.</p>
-                    <p class="role">Email: Khansahb887@gmail.com</p>
-                    <p class="role">Location: Nowshehra, KPK</p>
+                    <p class="text-muted small">Hi! My name is Omer Yar. I am a BS SE 6th Semester Student enrolled in the department of Software Engineering at Capital University of Science and Technology.</p>
+                    
+                    <p>Email: <a href="mailto:khansahb887@gmail.com" class="custom-link">khansahb887@gmail.com</a></p>
+                    
+                    <p>Location: 
+                        <a href="https://www.google.com/maps/search/?api=1&query=Nowshehra+KPK" target="_blank" class="custom-link">
+                            Nowshehra, KPK
+                        </a>
+                    </p>
                 </div>
             </div>
         </div>
